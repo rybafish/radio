@@ -1,0 +1,27 @@
+key_id: <amazon key id>
+access_key: <amazon secret key>
+
+# target s3 bucket to store the feed and audio
+bucket: bucket_name
+
+# maximum period to keep the item in feed
+maxDays: 14
+
+# files to keep in feed (and on disk)
+maxFiles: 32
+
+# storage folder
+storage: <folder path>
+
+# set this one if audio files are to be uploaded to s3
+uploadContent: True
+
+# url for the feed and audio files
+urlBase: http://<example.com/>
+
+# subfolder (will be used to generate folder on s3
+urlFolder: 'podcast'
+
+# name of the rss file (inside the urlFolder)
+feedFile: feed.xml
+

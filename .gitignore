@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+
+#local backup dir
+bkp/
+
+#exclude pyhdb folder
+pyhdb/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# local run batch
+*.bat
+
+# npp backups
+*.bak
+
+# archives, just in case
+*.7z
+*.zip
+
+# now we support saving files so...
+*.sql
+*.sqbkp
+
+# avoid updating the config
+config.yaml
+
+# cached files yaml
+files.yaml
+
+# log file 
+.log
+rybafish.log
+
+# sql scripts folder
+storage/
+
+# generated feed
+*.xml
+
+# SQLite data files
+*.db
+
+# emacs ignore
+.projectile

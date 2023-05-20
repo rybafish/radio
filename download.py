@@ -19,9 +19,9 @@ def get_yt(url, target):
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'threads': 4,
             # 'preferredquality': '192',
         }],
+        # 'postprocessor_args': ['-threads', '4'], # - don't have any effect
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
@@ -59,7 +59,8 @@ def generate_fn(folder):
     return fn
 
 def yaml_update(fname, title):
-    date = datetime.now().date()
+    # date = datetime.now().date()
+    date = datetime.now()
     utils.cacheAdd(fname, title, date)
 
 def download(url, folder):

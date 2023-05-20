@@ -6,18 +6,24 @@ from utils import cfg
 
 base = cfg('urlBase')
 subfolder = cfg('urlFolder')
+feedFile = cfg('feedFile')
 
 def generate_feed():
+    if subfolder:
+        url = f'{base}{subfolder}/{feedFile}'
+    else:
+        url = base + feedFile
+
     fg = FeedGenerator()
     fg.load_extension('podcast')
-    fg.podcast.itunes_category('Podcasting')
-    fg.id('http://lernfunk.de/media/654321')
+    fg.podcast.itunes_category('News')
+    fg.podcast.itunes_image('https://files.dugwin.net/nyanya/nyanya.jpg')
+    # fg.id('http://lernfunk.de/media/654321')
     fg.title('radio proxy feed')
     fg.author( {'name':'John Doe','email':'john@example.de'} )
-    fg.link( href='http://example.com', rel='alternate' )
-    # fg.logo('http://ex.com/logo.jpg')
+    # fg.logo('https://files.dugwin.net/nyanya/nyanya.jpg')
     fg.subtitle('dummy subtitle')
-    fg.link( href=base, rel='self' )
+    fg.link( href=url, rel='self' )
     fg.language('en')
 
     return fg
@@ -38,8 +44,10 @@ def add_entry(fg, item):
     fe.id(f'{id:04}')
     fe.title(title)
 
-    dt = datetime.strptime(date, '%Y-%m-%d')
+    # dt = datetime.strptime(date, '%Y-%m-%d')
+    dt = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
     dt = dt.replace(tzinfo=timezone.utc)
+    # tzinfo=datetime.timezone(datetime.timedelta(seconds=14400)))
 
     fe.pubDate(dt)
 

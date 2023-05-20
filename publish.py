@@ -1,7 +1,9 @@
 import boto3
 from botocore.exceptions import ClientError
 from utils import cfg
+import utils
 import os
+from generate import generate
 
 bucket = cfg('bucket')
 storage = cfg('storage')
@@ -13,15 +15,21 @@ def checkUploads():
     return files
 
 
-def publish():
-    # s3 = boto3.resource('s3')
-    # s3client = boto3.client('s3')
+def s3Connect():
     aws_key = cfg('key_id')
     aws_secret = cfg('access_key')
     s3 = boto3.resource('s3', aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
     s3client = boto3.client('s3', aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
 
     print('connected...')
+    return s3client
+
+def cleanup(s3client):
+    utils.cacheLoad()
+    utils.cacheClean(s3client)
+    utils.cacheDump()
+
+def publish(s3client):
     files = []
 
     subfolder = cfg('urlFolder', '')
@@ -58,4 +66,9 @@ def publish():
     return True
 
 if __name__ == '__main__':
-    publish()
+    s3client = s3Connect()
+    # publish(s3client)
+
+    cleanup(s3client)
+    generate()
+    publish(s3client)

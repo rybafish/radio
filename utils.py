@@ -59,21 +59,64 @@ def cacheAdd(fname, title, date):
     items = fileCache.get('items')
 
     id = cacheId()
+    date_str = date.strftime('%Y-%m-%d %H:%M:%S')
 
-    items.append([id, fname, title, str(date)])
+    items.append([id, fname, title, date_str])
+
+    # fileCache['items'] = items
+
+def cachePurge(s3client, purgeList):
+
+    if not cfg('uploadContent'):
+        print('[W] cache purge currently only works for S3 bucket, not local storage (uploadContent is False)')
+
+    bucket = cfg('bucket')
+    subfolder = cfg('urlFolder', '')
+    if subfolder:
+        subfolder += '/'
+
+    print('Purging the storage...')
+
+    for item in purgeList:
+        fname = f'{subfolder}{item[1]}'
+        print(f'{fname}...',  end='', flush=True)
+
+        s3client.delete_object(Bucket=bucket, Key=fname)
+
+        print(' [D]')
+
+
+def cacheClean(s3client):
+    global fileCache
+
+    items = fileCache.get('items')
 
     maxLen = cfg('maxFiles', 32)
     maxDays = cfg('maxDays', 14)
-    maxDate = str(date + datetime.timedelta(days=-maxDays))
+    maxDate = datetime.datetime.today() + datetime.timedelta(days=-maxDays)
+    maxDate = maxDate.strftime('%Y-%m-%d %H:%M:%S')
 
-    # remove old ones
-    items = [i for i in items if i[3] > maxDate]
+    purgeList = []              # list of items to delete
+    newItems = []
 
-    # truncate if too many items
-    if len(items) > maxLen:
-        items = items[-maxLen:]
+    # first purge outdated items
+    for item in items:
+        if item[3] < maxDate:
+            purgeList.append(item)
+        else:
+            newItems.append(item)
 
-    fileCache['items'] = items
+    # now check the number of entries
+    if len(newItems) > maxLen:
+        purgeList += newItems[maxLen-1:]
+        newItems = newItems[-maxLen:]
+
+    fileCache['items'] = newItems
+
+    if purgeList:
+        cachePurge(s3client, purgeList)
+    else:
+        print('no items to purge, skipping')
 
 def cacheLoad():
     global fileCache

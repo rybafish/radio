@@ -54,3 +54,6 @@ cover/
 
 # emacs ignore
 .projectile
+
+# sql scripts folder
+bkp/

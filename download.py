@@ -8,6 +8,9 @@ import utils
 from utils import cfg
 
 from datetime import datetime
+from urllib.request import urlopen
+
+import eyed3
 
 url = 'https://youtu.be/ncjYz6RhYwk'
 storage = cfg('storage')
@@ -112,7 +115,11 @@ def download(url, folder):
     fname = f'{id:04}'
     target = os.path.join(folder, fname)
 
-    title = get_yt(url, target)
+    if isYoutube(url):
+        title = get_yt(url, target)
+    else:
+        title = get_mp3(url, target)
+
     fname += '.mp3'
 
     try:

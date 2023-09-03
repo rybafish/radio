@@ -53,7 +53,7 @@ def cacheId():
 
     return id
 
-def cacheAdd(fname, title, date):
+def cacheAdd(fname, title, date, length):
     global fileCache
 
     items = fileCache.get('items')
@@ -61,7 +61,7 @@ def cacheAdd(fname, title, date):
     id = cacheId()
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
 
-    items.append([id, fname, title, date_str])
+    items.append([id, fname, title, date_str, length])
 
     # fileCache['items'] = items
 
@@ -108,7 +108,8 @@ def cacheClean(s3client):
 
     # now check the number of entries
     if len(newItems) > maxLen:
-        purgeList += newItems[maxLen-1:]
+        # purgeList += newItems[maxLen-1:] -- oops
+        purgeList += newItems[:-maxLen]
         newItems = newItems[-maxLen:]
 
     fileCache['items'] = newItems
@@ -149,5 +150,38 @@ def cacheDump():
         print('[E] File cache dump issue')
 
         return False
+
+def formatTime(t, skipSeconds = False, skipMs = False):
+
+    (ti, ms) = divmod(t, 1)
+
+    ms = round(ms, 3)
+
+    if ms == 1:
+        ti += 1
+        ms = '0'
+    else:
+        ms = str(int(ms*1000)).rstrip('0')
+
+    if ti < 60:
+
+        s = str(round(t, 3)) + ' s'
+
+    elif ti < 3600:
+        format = '%M:%S'
+
+        msStr = '.%s' % ms if not skipMs else ''
+
+        s = time.strftime(format, time.gmtime(ti)) + msStr
+    else:
+        format = '%H:%M:%S'
+        msStr = '.%s' % ms if not skipMs else ''
+        s = time.strftime(format, time.gmtime(ti)) + msStr
+
+    if not skipSeconds:
+        s += '   (' + str(round(t, 3)) + ')'
+
+    return s
+
 
 loadConfig()

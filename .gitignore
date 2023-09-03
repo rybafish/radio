@@ -36,10 +36,7 @@ pip-delete-this-directory.txt
 *.sqbkp
 
 # avoid updating the config
-config.yaml
-
-# cached files yaml
-files.yaml
+*.yaml
 
 # log file 
 .log
@@ -47,6 +44,7 @@ rybafish.log
 
 # sql scripts folder
 storage/
+cover/
 
 # generated feed
 *.xml

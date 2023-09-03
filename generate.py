@@ -30,10 +30,14 @@ def generate_feed():
 
 def add_entry(fg, item):
 
+    length = None
     id = item[0]
     fname = item[1]
     title = item[2]
     date = item[3]
+
+    if len(item) > 5:
+        length = item[4]
 
     if subfolder:
         url = f'{base}{subfolder}/{fname}'
@@ -52,7 +56,7 @@ def add_entry(fg, item):
     fe.pubDate(dt)
 
     # fe.description('description: ' + title)
-    fe.enclosure(url, 0, 'audio/mpeg')
+    fe.enclosure(url, length, 'audio/mpeg')
 
 
 def generate():

@@ -52,7 +52,7 @@ def publish(s3client):
             trgt = f'{subfolder}{f}'
             src = os.path.join(storage, f)
             print(f'Uploading {src} --> {trgt}...', end='', flush=True)
-            s3client.upload_file(src, bucket, trgt, ExtraArgs={'ACL': 'public-read'})
+            s3client.upload_file(src, bucket, trgt, ExtraArgs={'ACL': 'public-read', 'ContentType': 'application/xml'})
 
             os.remove(src)
             print(' [D]')

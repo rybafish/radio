@@ -6,7 +6,7 @@ from yaml import safe_load, dump, YAMLError #pip install pyyaml
 config = {}
 fileCache = {}
 
-# commit test
+# commit test2
 
 def loadConfig(silent=False):
 

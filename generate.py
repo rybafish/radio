@@ -17,11 +17,19 @@ def generate_feed():
     fg = FeedGenerator()
     fg.load_extension('podcast')
     fg.podcast.itunes_category('News')
-    fg.podcast.itunes_image('https://files.dugwin.net/nyanya/nyanya.jpg')
-    # fg.id('http://lernfunk.de/media/654321')
+    # fg.podcast.itunes_image('https://files.dugwin.net/nyanya/nyanya.jpg')
+
+
+    logo = cfg('logo')
+
+    if logo == 'https://....jpg':
+        print('[W] stream does not have a logo defined!')
+    else:
+        fg.podcast.itunes_image(logo)
+
     fg.title('radio proxy feed')
     fg.author( {'name':'John Doe','email':'john@example.de'} )
-    # fg.logo('https://files.dugwin.net/nyanya/nyanya.jpg')
+    # fg.logo(logo)
     fg.subtitle('dummy subtitle')
     fg.link( href=url, rel='self' )
     fg.language('en')

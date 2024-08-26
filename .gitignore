@@ -3,24 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
-build/
-dist/
-
-#local backup dir
-bkp/
-
-#exclude pyhdb folder
-pyhdb/
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
 # local run batch
 *.bat
 
@@ -31,20 +13,8 @@ pip-delete-this-directory.txt
 *.7z
 *.zip
 
-# now we support saving files so...
-*.sql
-*.sqbkp
-
 # avoid updating the config
 *.yaml
-
-# log file 
-.log
-rybafish.log
-
-# sql scripts folder
-storage/
-cover/
 
 # generated feed
 *.xml
@@ -55,5 +25,6 @@ cover/
 # emacs ignore
 .projectile
 
-# sql scripts folder
-bkp/
+# emacs backups
+*~
+

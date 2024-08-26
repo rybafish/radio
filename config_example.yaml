@@ -25,3 +25,5 @@ urlFolder: 'podcast'
 # name of the rss file (inside the urlFolder)
 feedFile: feed.xml
 
+# mandatory stream logo (link to jpeg)
+logo: https://....jpg

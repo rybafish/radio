@@ -1,4 +1,6 @@
+yt_dlp
 pyyaml
+eyed3
 boto3
 feedgen
 flask

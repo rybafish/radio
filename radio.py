@@ -135,6 +135,8 @@ def index():
             status = '[E] seems invalid url, aborted'
 
         log(status)
+    else:
+        log('get / request')
         
     return render_template_string(HTML_FORM, submitted=status)
 

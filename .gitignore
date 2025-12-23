@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#file storage dir
+storage/ 
+
 # local run batch
 *.bat
 

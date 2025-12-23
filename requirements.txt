@@ -1,0 +1,7 @@
+pyyaml
+boto3
+feedgen
+flask
+gunicorn
+redis
+rq

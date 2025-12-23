@@ -6,6 +6,7 @@ import yt_dlp as youtube_dl
 
 import utils
 from utils import cfg
+from utils import log
 
 from datetime import datetime
 from urllib.request import urlopen
@@ -15,28 +16,50 @@ import eyed3
 url = 'https://youtu.be/ncjYz6RhYwk'
 storage = cfg('storage')
 
+class myLogger:
+    def debug(self, msg):
+        log(f'[D]: {msg}')
+    def warning(self, msg):
+        log(f'[W]: {msg}')
+    def error(self, msg):
+        log(f'[E]: {msg}')
+
 def get_yt(url, target):
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': target,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            # 'preferredquality': '192',
-        }],
-        # 'postprocessor_args': ['-threads', '4'], # - don't have any effect
-    }
+    
+    if cfg('forse_mp3', False) == False:
+        ydl_opts = {
+            'format': 'bestaudio[ext=m4a]',
+            'nocolor': True,
+            'logger': myLogger(),
+            'outtmpl': target
+        }
+
+    if cfg('forse_mp3', False):
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': target,
+            'nocolor': True,
+            'logger': myLogger(),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                # 'preferredquality': '192',
+            }],
+            # 'postprocessor_args': ['-threads', '4'], # - don't have any effect
+        }
+        
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
+        r = ydl.extract_info(url)
         r = ydl.extract_info(url)
 
         duration = r.get('duration')
         title = r.get('title', 'no title')
         desctiption = r.get('description', 'no desc')
         dur_str = utils.formatTime(duration, skipSeconds=True, skipMs=True)
-        print(f'{target} <-- {title}, {dur_str}')
+        log(f'{target} <-- {title}, {dur_str}')
 
-        return title
+        return title, dur_str
 
     return None
 
@@ -59,12 +82,12 @@ def isYoutube(url):
 def get_mp3(url, target):
     """download mp3 file from mp3 and save it to target file"""
 
-    print(f'need to download mp3: {url} and save to {target}')
+    log(f'need to download mp3: {url} and save to {target}')
 
     with urlopen(url) as file:
-        print('Download started...', end='', flush=True)
+        log('Download started...', end='', flush=True)
         content = file.read()
-        print('done')
+        log('done')
 
 
     target += '.mp3'            # target is without extention
@@ -72,15 +95,15 @@ def get_mp3(url, target):
     with open(target, 'wb') as download:
         download.write(content)
 
-    print('Saved')
+    log('Saved')
 
     mp3 = eyed3.load(target)
 
     title = mp3.tag.title
 
-    print('title:', title)
+    log('title:', title)
 
-    return title
+    return title, None
 
 def generate_fn(folder):
     # finds the last file and generated fn above that
@@ -95,7 +118,7 @@ def generate_fn(folder):
         try:
             nums = [int(f) for f in fs]
         except ValueError as ex:
-            print(f'[E] cannot convert one of filenames to number: {ex}')
+            log(f'[E] cannot convert one of filenames to number: {ex}')
             return None
 
         nums.sort()
@@ -111,28 +134,42 @@ def yaml_update(fname, title, length):
     utils.cacheAdd(fname, title, date, length)
 
 def download(url, folder):
+    '''
+        long time sync processing
+    '''
+    
+    log(f'url: {url}')
+    log(f'folder: {folder}')
+    
     id = utils.cacheId()
     fname = f'{id:04}'
     target = os.path.join(folder, fname)
 
     if isYoutube(url):
-        title = get_yt(url, target)
+        if cfg('forse_mp3', False) == False:
+            title, dur = get_yt(url, target+'.m4a')
+            fname += '.m4a'
+        else:
+            title, dur = get_yt(url, target) # extention will be added by recoder I guess
+            fname += '.mp3'
     else:
-        title = get_mp3(url, target)
-
-    fname += '.mp3'
+        title, dur = get_mp3(url, target)
+        fname += '.mp3'
 
     try:
         st = os.stat(os.path.join(storage, fname))
         length = st.st_size
     except Exception as ex:
-        print(f'[!] file length error: {ex}')
+        log(f'[!] file length error: {ex}')
         return
 
     if title is not None:
         yaml_update(fname, title, length)
+        lenmb = f'{round(length/1024/1024, 1):.1f}MB'
+        return f'got it: {title} [{dur}], {lenmb}'
     else:
-        print('[E] the title is empty, seems a fatal download issue')
+        log('[E] the title is empty, seems a fatal download issue')
+        return '[E] check logs...'
 
 if __name__ == '__main__':
     argv = sys.argv
@@ -140,7 +177,7 @@ if __name__ == '__main__':
         # url = argv[1]
         pass
     else:
-        print('[E] you need to provide url to download')
+        log('[E] you need to provide url to download')
         exit(1)
 
     utils.cacheLoad()

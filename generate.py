@@ -2,7 +2,7 @@ import os
 from feedgen.feed import FeedGenerator
 import utils
 from datetime import datetime, timezone
-from utils import cfg
+from utils import cfg, log
 
 base = cfg('urlBase')
 subfolder = cfg('urlFolder')
@@ -23,14 +23,14 @@ def generate_feed():
     logo = cfg('logo')
 
     if logo == 'https://....jpg':
-        print('[W] stream does not have a logo defined!')
+        log('[W] stream does not have a logo defined!')
     else:
         fg.podcast.itunes_image(logo)
 
     fg.title('radio proxy feed')
     fg.author( {'name':'John Doe','email':'john@example.de'} )
     # fg.logo(logo)
-    fg.subtitle('dummy subtitle')
+    fg.subtitle('Радионяня')
     fg.link( href=url, rel='self' )
     fg.language('en')
 
@@ -70,14 +70,6 @@ def add_entry(fg, item):
 def generate():
 
     fg = generate_feed()
-
-    '''
-    files = os.listdir(folder)
-
-    for f in files:
-        print(f'adding {f}...')
-        add_entry(fg, f)
-    '''
 
     utils.cacheLoad()
 

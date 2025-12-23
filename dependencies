@@ -1,3 +1,5 @@
 pip install feedgen
+eyed3
+yt_dlp
 
 # plus ffmpeg

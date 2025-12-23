@@ -1,13 +1,52 @@
 import sys, os, time
 import datetime
-
+from pathlib import Path
 from yaml import safe_load, dump, YAMLError #pip install pyyaml
+from rq import get_current_job
 
 config = {}
 fileCache = {}
 
 # commit test2
 
+logger = ''
+
+def log(s, nots=False, nonl=False):
+    job = get_current_job()
+    pfx = ''
+
+    if not nots:
+        ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' '
+    else:
+        ts = ''
+
+    if cfg('bg'):
+        pass
+    else:
+        print('[l]', pfx, s)
+       
+    if nonl:
+        nl = ''
+    else:
+        nl = '\n'
+        
+    if job:
+        global logger
+        logger += ts + pfx + str(s) + nl
+        job.meta['last_msg'] = logger
+        job.save_meta()
+   
+    f = open('access.log', 'a')
+   
+    try:
+        f.write(ts + pfx + str(s) + nl)
+
+    except Exception as e:
+        f.write(ts + str(e) + nl)
+   
+    f.close()
+    
+    
 def loadConfig(silent=False):
 
     global config
@@ -15,7 +54,9 @@ def loadConfig(silent=False):
     script = sys.argv[0]
     path, file = os.path.split(script)
     
-    cfgFile = os.path.join(path, 'config.yaml')
+    cfgfile = os.path.join(Path(__file__).resolve().parent, 'config.yaml')
+    
+    cfgFile = os.path.join(path, cfgfile)
 
     config.clear()
 
@@ -23,8 +64,9 @@ def loadConfig(silent=False):
         f = open(cfgFile, 'r')
         config = safe_load(f)
         f.close()
-    except:
-        print('[!] No config file?')
+    except Exception as ex:
+        log('[!] No config file?')
+        log(ex)
         config = {}
         return False
         
@@ -70,22 +112,22 @@ def cacheAdd(fname, title, date, length):
 def cachePurge(s3client, purgeList):
 
     if not cfg('uploadContent'):
-        print('[W] cache purge currently only works for S3 bucket, not local storage (uploadContent is False)')
+        log('[W] cache purge currently only works for S3 bucket, not local storage (uploadContent is False)')
 
     bucket = cfg('bucket')
     subfolder = cfg('urlFolder', '')
     if subfolder:
         subfolder += '/'
 
-    print('Purging the storage...')
+    log('Cleaning the s3 storage...')
 
     for item in purgeList:
         fname = f'{subfolder}{item[1]}'
-        print(f'{fname}...',  end='', flush=True)
+        log(f'{fname}...', nonl=True)
 
         s3client.delete_object(Bucket=bucket, Key=fname)
 
-        print(' [D]')
+        log(' [D]')
 
 
 def cacheClean(s3client):
@@ -119,7 +161,7 @@ def cacheClean(s3client):
     if purgeList:
         cachePurge(s3client, purgeList)
     else:
-        print('no items to purge, skipping')
+        log('no items to purge, skipping')
 
 def cacheLoad():
     global fileCache
@@ -127,7 +169,9 @@ def cacheLoad():
     script = sys.argv[0]
     path, file = os.path.split(script)
 
-    yamlFile = os.path.join(path, 'files.yaml')
+    filesFile = os.path.join(Path(__file__).resolve().parent, 'files.yaml')
+
+    yamlFile = os.path.join(path, filesFile)
 
     fileCache.clear()
 
@@ -136,8 +180,8 @@ def cacheLoad():
         fileCache = safe_load(f)
         f.close()
     except Exception as e:
-        print('Seems file cache does not exist yet...')
-        print(e)
+        log('Seems file cache does not exist yet...')
+        log(e)
         fileCache = {}
         return False
 
@@ -149,7 +193,7 @@ def cacheDump():
         dump(fileCache, f, default_flow_style=None, sort_keys=False, allow_unicode=True)
         f.close()
     except:
-        print('[E] File cache dump issue')
+        log('[E] File cache dump issue')
 
         return False
 
@@ -184,6 +228,5 @@ def formatTime(t, skipSeconds = False, skipMs = False):
         s += '   (' + str(round(t, 3)) + ')'
 
     return s
-
 
 loadConfig()

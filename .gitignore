@@ -31,3 +31,5 @@ storage/
 # emacs backups
 *~
 
+# log file
+access.log

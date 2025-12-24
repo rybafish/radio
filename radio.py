@@ -14,15 +14,15 @@ import time
 
 app = Flask(__name__)
 
-username = "dug"
-pwd = "neuromancer1024"
+username = cfg('user')
+pwd = cfg('pwd')
 
 HTML_FORM = """
 <!doctype html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Simple Form</title>
+    <title>Radio Nyanya</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {

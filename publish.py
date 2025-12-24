@@ -55,7 +55,7 @@ def publish(s3client):
             s3client.upload_file(src, bucket, trgt, ExtraArgs={'ACL': 'public-read', 'ContentType': 'application/xml'})
 
             os.remove(src)
-            log(' [D]')
+            log(' [D]', nots=True)
 
     except ClientError as e:
         log('\n[E] '+str(e))

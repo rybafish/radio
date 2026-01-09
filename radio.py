@@ -96,7 +96,7 @@ def enqueueOne(url):
 @requires_auth
 def status(job_id):
     redis = Redis(host="127.0.0.1", port=6379)
-    contentType = {'Content-Type': 'text/plain'}
+    contentType = {'Content-Type': 'text/plain; charset=utf-8'}
 
     try:
         job = Job.fetch(job_id, connection=redis)

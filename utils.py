@@ -1,3 +1,5 @@
+from dataclasses import field
+from ntpath import isfile
 import sys, os, time
 import datetime
 from pathlib import Path
@@ -84,6 +86,7 @@ def cfg(param, default = None):
 def cacheId():
     global fileCache
 
+    log(f'cacheId call')
     items = fileCache.get('items')
 
     if items is None:
@@ -95,17 +98,22 @@ def cacheId():
     else:
         id = 1
 
+    log(f'cacheId {fileCache=}')
+    log(f'cacheId id: {id}')
     return id
 
 def cacheAdd(fname, title, date, length):
     global fileCache
 
+    log('cacheAdd')
+    id = cacheId()
     items = fileCache.get('items')
 
-    id = cacheId()
     date_str = date.strftime('%Y-%m-%d %H:%M:%S')
 
+    log(items)
     items.append([id, fname, title, date_str, length])
+    log(items)
 
     # fileCache['items'] = items
 
@@ -133,7 +141,9 @@ def cachePurge(s3client, purgeList):
 def cacheClean(s3client):
     global fileCache
 
-    items = fileCache.get('items')
+    log('cachePurge')
+
+    items = fileCache.get('items') or {}
 
     maxLen = cfg('maxFiles', 32)
     maxDays = cfg('maxDays', 14)
@@ -163,22 +173,32 @@ def cacheClean(s3client):
     else:
         log('no items to purge, skipping')
 
-def cacheLoad():
+def cacheLoad(target):
     global fileCache
 
+    log(f'cacheLoad: {target}')
     script = sys.argv[0]
     path, file = os.path.split(script)
 
-    filesFile = os.path.join(Path(__file__).resolve().parent, 'files.yaml')
+    fname = f'files_{target}.yaml'
+    filesFile = os.path.join(Path(__file__).resolve().parent, fname)
 
     yamlFile = os.path.join(path, filesFile)
 
     fileCache.clear()
 
+    if not os.path.isfile(yamlFile):
+        log(f'creating an empty {fname} file')
+        open(yamlFile, 'a').close()
+
     try:
         f = open(yamlFile, 'r', encoding='utf-8')
         fileCache = safe_load(f)
         f.close()
+
+        if not fileCache:
+            fileCache = {}
+
     except Exception as e:
         log('Seems file cache does not exist yet...')
         log(e)
@@ -187,9 +207,11 @@ def cacheLoad():
 
     return True
 
-def cacheDump():
+def cacheDump(target):
+    log(f'cacheDump: {fileCache}')
     try:
-        f = open('files.yaml', 'w', encoding='utf-8')
+        fname = f'files_{target}.yaml'
+        f = open(fname, 'w', encoding='utf-8')
         dump(fileCache, f, default_flow_style=None, sort_keys=False, allow_unicode=True)
         f.close()
     except:

@@ -1,7 +1,4 @@
 from flask import Flask, request, Response, render_template_string, redirect
-from download import download
-from publish import s3Connect, cleanup, publish
-from generate import generate
 from utils import cfg, log
 import utils
 
@@ -9,6 +6,8 @@ from redis import Redis
 from rq import Queue
 from rq.job import Job, JobStatus
 from rq.exceptions import NoSuchJobError
+
+from tasks import enqueueOne
 
 import time
 
@@ -50,6 +49,10 @@ HTML_FORM = """
 <body>
     <h1>one at a time</h1>
     <form method="post" autocomplete="off">
+        <select name="target">
+            <option value="nyanya">nyanya</option>
+            <option value="test">test</option>
+        </select>
         <input type="text" name="user_input" autocomplete="off" value="">
         <button type="submit">send</button>
     </form>
@@ -79,24 +82,12 @@ def requires_auth(f):
     decorated.__name__ = f.__name__
     return decorated
 
-def enqueueOne(url):
-    utils.cacheLoad()
-    storage = cfg('storage')
-    download(url, storage)
-        
-    utils.cacheDump()
-    
-    s3client = s3Connect()
-
-    cleanup(s3client)
-    generate()
-    publish(s3client)
-
 @app.route("/status/<job_id>")
 @requires_auth
 def status(job_id):
     redis = Redis(host="127.0.0.1", port=6379)
     contentType = {'Content-Type': 'text/plain; charset=utf-8'}
+    job = None
 
     try:
         job = Job.fetch(job_id, connection=redis)
@@ -108,6 +99,9 @@ def status(job_id):
     
     body = f'{status}\n'
     body += str(last_log)
+
+    if job and job.is_failed:
+        body += job.exc_info
     
     return body, 200, contentType
     
@@ -120,14 +114,18 @@ def index():
     if request.method == "POST":
         
         url = request.form.get("user_input")
+        target = request.form.get("target")
+
+        log(f'{url=}, {target=}')
         
         if url and url[:8] == 'https://':
             redis = Redis(host="127.0.0.1", port=6379)
-            q = Queue("default", connection=redis)
+            queue = cfg('env', 'default')
+            q = Queue(queue, connection=redis)
 
-            log('connected to queue')
+            log(f'connected to queue {queue}')
 
-            job = q.enqueue(enqueueOne, url=url, job_timeout=600)
+            job = q.enqueue(enqueueOne, url=url, target=target, job_timeout=600)
             log(f'sent to queue, job id: {job.id}')
             time.sleep(0.345)
             return redirect(f'/status/{job.id}', code=303)

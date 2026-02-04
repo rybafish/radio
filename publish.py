@@ -24,23 +24,35 @@ def s3Connect():
     log('connected...')
     return s3client
 
-def cleanup(s3client):
-    utils.cacheLoad()
+def cleanup(s3client, target):
+    utils.cacheLoad(target)
     utils.cacheClean(s3client)
-    utils.cacheDump()
+    utils.cacheDump(target)
 
-def publish(s3client):
+def publish(s3client, target=None):
     files = []
 
-    subfolder = cfg('urlFolder', '')
+    prefix = cfg('urlPrefix', '')
+    log(f'publish: {target=}, {prefix=}')
+
+    if target:
+        trgcfg = cfg('target')
+        if trgcfg:
+            subfolder = trgcfg.get(target).get('urlFolder', '')
+        else:
+            subfolder = ''
+    else:
+        subfolder = cfg('urlfolder', '')
+
     if subfolder:
         subfolder += '/'
 
-    feedFileName = subfolder + feedFile
+    feedFileName = prefix + subfolder + feedFile
 
     try:
         log(f'Uploading feed itself: {feedFileName}...')
-        s3client.upload_file('podcast.xml', bucket, feedFileName, ExtraArgs={'ACL': 'public-read', 'ContentType': 'application/xml'})
+
+        s3client.upload_file(f'podcast_{target}.xml', bucket, feedFileName, ExtraArgs={'ACL': 'public-read', 'ContentType': 'application/xml'})
 
         if cfg('uploadContent'):
             files = checkUploads()
@@ -49,7 +61,7 @@ def publish(s3client):
             log('No content to upload.')
 
         for f in files:
-            trgt = f'{subfolder}{f}'
+            trgt = f'{prefix}{subfolder}{f}'
             src = os.path.join(storage, f)
             log(f'Uploading {src} --> {trgt}...', nonl=True)
             s3client.upload_file(src, bucket, trgt, ExtraArgs={'ACL': 'public-read', 'ContentType': 'application/xml'})

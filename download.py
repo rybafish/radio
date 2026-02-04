@@ -131,6 +131,7 @@ def generate_fn(folder):
 def yaml_update(fname, title, length):
     # date = datetime.now().date()
     date = datetime.now()
+    log(f'yaml_update {fname}')
     utils.cacheAdd(fname, title, date, length)
 
 def download(url, folder):
@@ -164,6 +165,7 @@ def download(url, folder):
         return
 
     if title is not None:
+        log('call yaml_update...')
         yaml_update(fname, title, length)
         lenmb = f'{round(length/1024/1024, 1):.1f}MB'
         return f'got it: {title} [{dur}], {lenmb}'
@@ -180,9 +182,9 @@ if __name__ == '__main__':
         log('[E] you need to provide url to download')
         exit(1)
 
-    utils.cacheLoad()
+    utils.cacheLoad(target='dummy')
 
     for url in argv[1:]:
         download(url, storage)
 
-    utils.cacheDump()
+    utils.cacheDump(target='dummy')

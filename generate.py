@@ -5,12 +5,18 @@ from datetime import datetime, timezone
 from utils import cfg, log
 
 base = cfg('urlBase')
-subfolder = cfg('urlFolder')
 feedFile = cfg('feedFile')
 
-def generate_feed():
+def generate_feed(target):
+    
+    prefix = cfg('urlPrefix', '')
+    trgcfg = cfg('target')
+    subfolder = trgcfg.get('urlFolder')
+
+    log(f'genetate_feed, target: {target}, {prefix=}, {subfolder=}')
+    
     if subfolder:
-        url = f'{base}{subfolder}/{feedFile}'
+        url = f'{base}{prefix}{subfolder}/{feedFile}'
     else:
         url = base + feedFile
 
@@ -36,7 +42,7 @@ def generate_feed():
 
     return fg
 
-def add_entry(fg, item):
+def add_entry(fg, item, target):
 
     length = None
     id = item[0]
@@ -47,8 +53,16 @@ def add_entry(fg, item):
     if len(item) > 5:
         length = item[4]
 
+    prefix = cfg('urlPrefix', '')
+    trgcfg = cfg('target')
+    
+    if trgcfg:
+        subfolder = trgcfg[target].get('urlFolder')
+
+    log(f'add_entry {item} target: {target}, {subfolder=}')
+
     if subfolder:
-        url = f'{base}{subfolder}/{fname}'
+        url = f'{base}{prefix}{subfolder}/{fname}'
     else:
         url = base + fname
 
@@ -67,18 +81,20 @@ def add_entry(fg, item):
     fe.enclosure(url, length, 'audio/mpeg')
 
 
-def generate():
+def generate(target):
 
-    fg = generate_feed()
+    log(f'Building xml, {target=}')
 
-    utils.cacheLoad()
+    fg = generate_feed(target)
+
+    utils.cacheLoad(target)
 
     items = utils.fileCache.get('items')
     for item in items:
-        add_entry(fg, item)
+        add_entry(fg, item, target)
 
     fg.rss_str(pretty=True)
-    fg.rss_file('podcast.xml')
+    fg.rss_file(f'podcast_{target}.xml')
 
 if __name__ == '__main__':
     generate()

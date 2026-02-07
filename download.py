@@ -77,7 +77,22 @@ def isYoutube(url):
 
     return False
 
+def stripYTUrl(url):
+    if url[:17] ==  'https://youtu.be/':
+        i = url[17:].find('?')
+        if i > 0:
+            urls = url[:17+i]
+            log(f'stripped url --> {urls}')
+            return urls
 
+    if url[:24] ==  'https://www.youtube.com/':
+        i = url[24:].find('&')
+        if i > 0:
+            urls = url[:24+i]
+            log(f'stripped url --> {urls}')
+            return urls
+           
+    return url
 
 def get_mp3(url, target):
     """download mp3 file from mp3 and save it to target file"""
@@ -85,7 +100,7 @@ def get_mp3(url, target):
     log(f'need to download mp3: {url} and save to {target}')
 
     with urlopen(url) as file:
-        log('Download started...', end='', flush=True)
+        log('Download started...')
         content = file.read()
         log('done')
 
@@ -147,6 +162,7 @@ def download(url, folder):
     target = os.path.join(folder, fname)
 
     if isYoutube(url):
+        url = stripYTUrl(url)
         if cfg('forse_mp3', False) == False:
             title, dur = get_yt(url, target+'.m4a')
             fname += '.m4a'

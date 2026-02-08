@@ -1,5 +1,12 @@
-from flask import Flask, request, Response, render_template_string, redirect
+from sys import set_coroutine_origin_tracking_depth
+from flask import Flask, request, Response, render_template_string, redirect, url_for
 from utils import cfg, log
+
+from flask_session import Session
+from flask import session
+
+import os
+
 import utils
 
 from redis import Redis
@@ -10,11 +17,30 @@ from rq.exceptions import NoSuchJobError
 from tasks import enqueueOne
 
 import time
+from functools import wraps
 
 app = Flask(__name__)
+mydir = os.path.dirname(os.path.realpath(__file__))
+sessionPath = os.path.join(mydir, 'sessions')
 
-username = cfg('user')
-pwd = cfg('pwd')
+os.makedirs(sessionPath, exist_ok=True)
+
+usernames = cfg('users')
+pwds = cfg('pwds')
+
+secretKey = cfg('secretKey')
+
+app.config.update(
+    SECRET_KEY = secretKey,
+    SESSION_TYPE="filesystem",
+    SESSION_FILE_DIR=sessionPath,
+    SESSION_PERMANENT=True,
+    SESSION_REFRESH_EACH_REQUEST=False,
+    PERMANENT_SESSION_LIFETIME=365*24*60*60
+)
+
+
+Session(app)
 
 HTML_FORM = """
 <!doctype html>
@@ -50,8 +76,9 @@ HTML_FORM = """
     <h1>one at a time</h1>
     <form method="post" autocomplete="off">
         <select name="target">
-            <option value="nyanya">nyanya</option>
-            <option value="test">test</option>
+        {% for val, sel in targets %}
+        <option value="{{ val }}" {% if sel %}selected{% endif %}>{{ val }}</option>
+        {% endfor %}
         </select>
         <input type="text" name="user_input" autocomplete="off" value="">
         <button type="submit">send</button>
@@ -63,27 +90,39 @@ HTML_FORM = """
 </html>
 """
 
-def check_auth(username, password):
-    return username == username and password == pwd
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = request.form.get("username")
+        passwd = request.form.get("password")
+        
 
+        for username, pwd in zip(usernames, pwds):
+            if user == username and passwd == pwd:
+                session["user"] = username
+                session.permanent = True
+                return redirect(url_for("index"))
 
-def authenticate():
-    return Response(
-        'identify yourself', 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'}
-    )
+        return "Invalid credentials", 401
 
-def requires_auth(f):
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
+    return render_template_string("""
+        <form method="post">
+            <input name="username">
+            <input name="password" type="password">
+            <button type="submit">Login</button>
+        </form>
+    """)
+
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if "user" not in session:
+            return redirect(url_for("login"))
         return f(*args, **kwargs)
-    decorated.__name__ = f.__name__
-    return decorated
+    return wrapper
 
 @app.route("/status/<job_id>")
-@requires_auth
+@login_required
 def status(job_id):
     redis = Redis(host="127.0.0.1", port=6379)
     contentType = {'Content-Type': 'text/plain; charset=utf-8'}
@@ -106,7 +145,7 @@ def status(job_id):
     return body, 200, contentType
     
 @app.route("/", methods=["GET", "POST"])
-@requires_auth
+@login_required
 def index():
     result = None
     status = None
@@ -125,6 +164,9 @@ def index():
 
             log(f'connected to queue {queue}')
 
+            if session.get('target') != target:
+                session['target'] = target
+
             job = q.enqueue(enqueueOne, url=url, target=target, job_timeout=600)
             log(f'sent to queue, job id: {job.id}')
             time.sleep(0.345)
@@ -136,7 +178,16 @@ def index():
     else:
         log('get / request')
         
-    return render_template_string(HTML_FORM, submitted=status)
+    targetCfg = cfg('target')
+    targets = []
+
+    for t in targetCfg:
+        if t == session['target']:
+            targets.append([t, True])
+        else:
+            targets.append([t, None])
+    
+    return render_template_string(HTML_FORM, submitted=status, targets=targets)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=5000)

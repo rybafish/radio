@@ -182,7 +182,7 @@ def index():
     targets = []
 
     for t in targetCfg:
-        if t == session['target']:
+        if t == session.get('target'):
             targets.append([t, True])
         else:
             targets.append([t, None])

@@ -66,6 +66,7 @@ def loadConfig(silent=False):
         f = open(cfgFile, 'r')
         config = safe_load(f)
         f.close()
+        log('config file loaded')
     except Exception as ex:
         log('[!] No config file?')
         log(ex)

@@ -15,8 +15,12 @@ def generate_feed(target):
 
     log(f'genetate_feed, target: {target}, {prefix=}, {subfolder=}')
     
+    logo = None
+    title = None
     if subfolder:
         url = f'{base}{prefix}{subfolder}/{feedFile}'
+        logo = trgcfg.get('logo')
+        title = trgcfg.get('title')
     else:
         url = base + feedFile
 
@@ -25,15 +29,20 @@ def generate_feed(target):
     fg.podcast.itunes_category('News')
     # fg.podcast.itunes_image('https://files.dugwin.net/nyanya/nyanya.jpg')
 
+    if logo is None:
+        logo = cfg('logo')
 
-    logo = cfg('logo')
-
+    if title is None:
+        title = 'radio proxy feed'
+        
     if logo == 'https://....jpg':
         log('[W] stream does not have a logo defined!')
     else:
         fg.podcast.itunes_image(logo)
 
-    fg.title('radio proxy feed')
+    fg.title(title)
+
+
     fg.author( {'name':'John Doe','email':'john@example.de'} )
     # fg.logo(logo)
     fg.subtitle('Радионяня')

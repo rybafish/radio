@@ -11,23 +11,29 @@ def generate_feed(target):
     
     prefix = cfg('urlPrefix', '')
     trgcfg = cfg('target')
-    subfolder = trgcfg.get('urlFolder')
+
+    if trgcfg:
+        trgcfg = trgcfg.get(target)
+
+    logo = None
+    title = None
+    if trgcfg:
+        subfolder = trgcfg.get('urlFolder')
+        logo = trgcfg.get('logo')
+        title = trgcfg.get('title')
+    else:
+        subfolder = cfg('urlFolder')
 
     log(f'genetate_feed, target: {target}, {prefix=}, {subfolder=}')
     
-    logo = None
-    title = None
     if subfolder:
         url = f'{base}{prefix}{subfolder}/{feedFile}'
-        logo = trgcfg.get('logo')
-        title = trgcfg.get('title')
     else:
         url = base + feedFile
 
     fg = FeedGenerator()
     fg.load_extension('podcast')
     fg.podcast.itunes_category('News')
-    # fg.podcast.itunes_image('https://files.dugwin.net/nyanya/nyanya.jpg')
 
     if logo is None:
         logo = cfg('logo')
@@ -41,7 +47,6 @@ def generate_feed(target):
         fg.podcast.itunes_image(logo)
 
     fg.title(title)
-
 
     fg.author( {'name':'John Doe','email':'john@example.de'} )
     # fg.logo(logo)

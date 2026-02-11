@@ -4,7 +4,7 @@ from generate import generate
 import utils
 from utils import cfg, log
 
-def enqueueOne(url, target):
+def enqueueOne(url, target, refresh=False):
     log(f'enqueueOne: {target=}')
     if not utils.cacheLoad(target):
         log('cache load issue, abort')
@@ -12,10 +12,15 @@ def enqueueOne(url, target):
     log(utils.fileCache)
     
     # log(f'enqueue one for {target}')
-    storage = cfg('storage')
-    log('Starting download...')
-    download(url, storage)
-    log('Download done')
+
+    if not refresh:
+        storage = cfg('storage')
+
+        log('Starting download...')
+        download(url, storage)
+        log('Download done')
+    else:
+        log('just refresh, skip download part')
         
     utils.cacheDump(target)
     

@@ -157,7 +157,7 @@ def index():
 
         log(f'{url=}, {target=}')
         
-        if url and url[:8] == 'https://':
+        if (url and url[:8] == 'https://') or url == 'refresh':
             redis = Redis(host="127.0.0.1", port=6379)
             queue = cfg('env', 'default')
             q = Queue(queue, connection=redis)
@@ -167,7 +167,10 @@ def index():
             if session.get('target') != target:
                 session['target'] = target
 
-            job = q.enqueue(enqueueOne, url=url, target=target, job_timeout=600)
+            if url == 'refresh':
+                job = q.enqueue(enqueueOne, url=None, target=target, refresh=True, job_timeout=600)
+            else:
+                job = q.enqueue(enqueueOne, url=url, target=target, job_timeout=600)
             log(f'sent to queue, job id: {job.id}')
             time.sleep(0.345)
             return redirect(f'/status/{job.id}', code=303)

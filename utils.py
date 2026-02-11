@@ -22,16 +22,16 @@ def log(s, nots=False, nonl=False):
     else:
         ts = ''
 
-    if cfg('bg'):
-        pass
-    else:
-        print('[l]', pfx, s)
-       
     if nonl:
         nl = ''
     else:
         nl = '\n'
         
+    if cfg('bg'):
+        pass
+    else:
+        print('[l]', pfx, s, end=nl)
+       
     if job:
         global logger
         logger += ts + pfx + str(s) + nl
@@ -118,28 +118,40 @@ def cacheAdd(fname, title, date, length):
 
     # fileCache['items'] = items
 
-def cachePurge(s3client, purgeList):
+def cachePurge(s3client, purgeList, target):
 
     if not cfg('uploadContent'):
         log('[W] cache purge currently only works for S3 bucket, not local storage (uploadContent is False)')
 
     bucket = cfg('bucket')
-    subfolder = cfg('urlFolder', '')
+
+    cfgtrg = cfg('target')
+
+    if cfgtrg:
+        cfgtrg = cfgtrg.get(target)
+
+    prefix = cfg('urlPrefix', '')
+
+    if cfgtrg:
+        subfolder = cfgtrg.get('urlFolder')
+    else:
+        subfolder = cfg('urlFolder', '')
+
     if subfolder:
         subfolder += '/'
 
     log('Cleaning the s3 storage...')
 
     for item in purgeList:
-        fname = f'{subfolder}{item[1]}'
-        log(f'{fname}...', nonl=True)
+        fname = f'{prefix}{subfolder}{item[1]}'
+        log(f'deleting {fname}...', nonl=True)
 
         s3client.delete_object(Bucket=bucket, Key=fname)
 
         log(' [D]')
 
 
-def cacheClean(s3client):
+def cacheClean(s3client, target):
     global fileCache
 
     log('cachePurge')
@@ -170,7 +182,7 @@ def cacheClean(s3client):
     fileCache['items'] = newItems
 
     if purgeList:
-        cachePurge(s3client, purgeList)
+        cachePurge(s3client, purgeList, target)
     else:
         log('no items to purge, skipping')
 

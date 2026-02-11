@@ -26,7 +26,7 @@ def s3Connect():
 
 def cleanup(s3client, target):
     utils.cacheLoad(target)
-    utils.cacheClean(s3client)
+    utils.cacheClean(s3client, target)
     utils.cacheDump(target)
 
 def publish(s3client, target=None):

@@ -72,10 +72,9 @@ head_html = '''
 </head>
 '''
 
-HTML_FORM = f"""
+HTML_FORM = """
 <!doctype html>
-<html>
-{head_html}
+<html>""" + head_html +"""
 <body>
     <h1>one at a time</h1>
     <form method="post" autocomplete="off">

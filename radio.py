@@ -97,8 +97,8 @@ def login():
 
     return render_template_string("""
         <form method="post">
-            <input name="username">
-            <input name="password" type="password">
+            <input name="username"><br />
+            <input name="password" type="password"><br />
             <button type="submit">Login</button>
         </form>
     """)

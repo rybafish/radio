@@ -55,17 +55,6 @@ HTML_FORM = """
             font-family: sans-serif;
             margin: 20px;
         }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 12px 20px;
-            font-size: 18px;
-        }
         .container {
             max-width: 500px;
             margin: 0 auto;

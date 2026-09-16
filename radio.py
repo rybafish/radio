@@ -59,8 +59,17 @@ HTML_FORM = """
             max-width: 500px;
             margin: 0 auto;
         }
-    </style>
-	
+
+        input {
+            width: 250px;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+        }
 </head>
 <body>
     <h1>one at a time</h1>
@@ -69,8 +78,8 @@ HTML_FORM = """
         {% for val, sel in targets %}
         <option value="{{ val }}" {% if sel %}selected{% endif %}>{{ val }}</option>
         {% endfor %}
-        </select>
-        <input type="text" name="user_input" autocomplete="off" value="">
+        </select><br />
+        <input type="text" name="user_input" autocomplete="off" value=""><br />
         <button type="submit">send</button>
     </form>
     {% if submitted %}

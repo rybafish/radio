@@ -70,6 +70,7 @@ HTML_FORM = """
             font-size: 18px;
             padding: 10px 20px;
         }
+    </style>
 </head>
 <body>
     <h1>one at a time</h1>

@@ -42,14 +42,10 @@ app.config.update(
 
 Session(app)
 
-HTML_FORM = """
-<!doctype html>
-<html>
+head_html = '''
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Radio Nyanya</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: sans-serif;
@@ -71,7 +67,15 @@ HTML_FORM = """
             padding: 10px 20px;
         }
     </style>
+    <title>Radio Nyanya</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+'''
+
+HTML_FORM = f"""
+<!doctype html>
+<html>
+{head_html}
 <body>
     <h1>one at a time</h1>
     <form method="post" autocomplete="off">
@@ -105,12 +109,15 @@ def login():
 
         return "Invalid credentials", 401
 
-    return render_template_string("""
+    return render_template_string(f"""
+        <html>
+        {head_html}
         <form method="post">
             <input name="username"><br />
             <input name="password" type="password"><br />
             <button type="submit">Login</button>
         </form>
+        </html>
     """)
 
 def login_required(f):

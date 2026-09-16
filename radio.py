@@ -60,6 +60,7 @@ head_html = '''
             width: 250px;
             font-size: 18px;
             padding: 10px;
+            border: 1px solid #ddd;
         }
 
         button {
